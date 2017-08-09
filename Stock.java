@@ -4,6 +4,7 @@ public class Stock {
 	static public class Daily {
 		public String _today;
 		public String _id;
+		public String _name;
 		public float _highest_price;
 		public float _lowest_price;
 		public float _open_price;
@@ -21,6 +22,7 @@ public class Stock {
 
 	static public class Instant {
 		public long _time_stamp;
+		public String _time_stamp2;
 		public float _current_price;
 		public int _temporal_volume;
 		public int _volume;

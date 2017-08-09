@@ -15,7 +15,7 @@ public class StockGrabber implements Runnable {
 		_messageQueue = messageQueue;
 	}
 
-	private String getCookie() throws Exception {
+	static public String getCookie() throws Exception {
 		URL obj = new URL(BaseURL);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -25,7 +25,7 @@ public class StockGrabber implements Runnable {
 		return con.getHeaderField("Set-Cookie");
 	}
 
-	private String getStock(String url, String cookie) throws Exception {
+	static public String getStock(String url, String cookie) throws Exception {
 		URL obj = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -49,7 +49,7 @@ public class StockGrabber implements Runnable {
 		in.close();
 
 		if (response.length() == 0) {
-			System.out.println("no data");
+			//System.out.println("no data");
 			return null;
 		}
 
@@ -73,8 +73,9 @@ public class StockGrabber implements Runnable {
 						time2 = System.currentTimeMillis();
 					}
 
-					System.out.println(Thread.currentThread().getId() + ": good - " + i + "(" + ((float) (time2 - time1) / 1000) + ")");
+					//System.out.println(Thread.currentThread().getId() + ": good - " + i + "(" + ((float) (time2 - time1) / 1000) + ")");
 					_messageQueue.add(message);
+					Thread.sleep(5000 - (time2 - time1));
 				}
 			}
 		} catch (Exception e) {

@@ -7,8 +7,7 @@ import org.json.JSONArray;
 
 public class MessageParser implements Runnable {
 	private ArrayBlockingQueue<String> _messageQueue;
-	private HashMap<String, Stock.Daily> _stockContainer;
-
+	private HashMap<String, Stock.Daily> _stockContainer; 
 	public MessageParser(ArrayBlockingQueue<String> messageQueue, HashMap<String, Stock.Daily> stockContainer) {
 		_messageQueue = messageQueue;
 		_stockContainer = stockContainer;
@@ -24,6 +23,7 @@ public class MessageParser implements Runnable {
 			Stock.Instant instantStock = new Stock.Instant();
 
 			instantStock._time_stamp = Long.valueOf(msg.get("tlong").toString());
+			instantStock._time_stamp2 = msg.get("t").toString();
 			instantStock._current_price = msg.has("z") ? Float.valueOf(msg.get("z").toString()) : 0;
 			instantStock._temporal_volume = msg.has("tv") ? Integer.valueOf(msg.get("tv").toString()) : 0;
 			instantStock._volume = msg.has("v") ? Integer.valueOf(msg.get("v").toString()) : 0;
@@ -60,6 +60,7 @@ public class MessageParser implements Runnable {
 				}
 
 				dailyStock._id = stock_id;
+				dailyStock._name = msg.get("n").toString();
 				dailyStock._today = msg.get("d").toString();
 				dailyStock._highest_price = msg.has("h") == true ? Float.valueOf(msg.get("h").toString()) : 0;
 				dailyStock._lowest_price = msg.has("l") == true ? Float.valueOf(msg.get("l").toString()) : 0.0f;
@@ -67,6 +68,7 @@ public class MessageParser implements Runnable {
 				dailyStock._up_stop_price = msg.has("u") == true ? Float.valueOf(msg.get("u").toString()) : 0;
 				dailyStock._down_stop_price = msg.has("w") == true ? Float.valueOf(msg.get("w").toString()) : 0;
 				dailyStock._yesterday_price = msg.has("y") == true ? Float.valueOf(msg.get("y").toString()) : 0;
+
 				dailyStock.add(instantStock);
 			}
 		}
