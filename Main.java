@@ -21,10 +21,72 @@ public class Main {
 	public static final String ANSI_RED = "\u001B[41m";
 	public static final String ANSI_GREEN = "\u001B[42m";
 
+	static private String predict(ArrayList<Stock.Instant> instant_stocks, ArrayList <Stock.Instant> stocks) {
+		int tendency_up = -1;
+		int tendency_down = -1;
+		int tendency_equal = -1;
+
+		for (Stock.Instant s: instant_stocks) {
+			int size = stocks.size();
+			boolean found = false;
+
+			for (int i = 0; i < size; i++) {
+				if (s._time_stamp2.equals(stocks.get(i)._time_stamp2)) {
+					found = true;
+					break;
+				}
+			}
+
+			if (found == false)
+				stocks.add(s);
+		}
+
+		if (stocks.size() < 11)
+			System.out.println(stocks.size());
+
+		String v = "";
+
+		Stock.Instant previous_stock = null;
+
+		while (stocks.size() >= 11) {
+			previous_stock = stocks.remove(0);
+
+			for (int j = 0; j < 10; j++) {
+				Stock.Instant s = stocks.get(j);
+				float diff = s._current_price - previous_stock._current_price;
+
+				v += s._current_price + " ";
+				previous_stock = s;
+
+				if (diff > 0) {
+					tendency_up++;
+					tendency_equal = 0;
+					//return ANSI_RED + "漲" + ANSI_RESET + " 時間: " + s._time_stamp2 + " " + v;
+				}
+				else if (diff < 0) {
+					tendency_down++;
+					tendency_equal = 0;
+					//return ANSI_GREEN + "跌" + ANSI_RESET + " 時間: " + s._time_stamp2 + " " + v;
+				}
+				else
+					tendency_equal++;
+			}
+		}
+
+		if (tendency_up == -1 && tendency_down == -1 && tendency_equal == -1)
+			return null;
+
+		if (tendency_up > tendency_down && tendency_up > tendency_equal)
+			return ANSI_RED + "漲" + ANSI_RESET + " 時間: " + previous_stock._time_stamp2 + " " + v;
+		else if (tendency_down > tendency_up && tendency_up > tendency_equal)
+			return ANSI_GREEN + "跌" + ANSI_RESET + " 時間: " + previous_stock._time_stamp2 + " " + v;
+
+		return "平盤" + " 時間: " + previous_stock._time_stamp2 + " " + v;
+	}
+
 	static public void main(String [] args) {
 		try {
 			ExecutorService executor = Executors.newFixedThreadPool(args.length + 1);
-			//BufferedReader br = new BufferedReader(new FileReader("stocks.txt"));
 
 			ArrayBlockingQueue<String> messageQueue = new ArrayBlockingQueue<String>(args.length * 100 * 100);
 			HashMap<String, Stock.Daily> stockContainer = new HashMap<String, Stock.Daily>();
@@ -35,6 +97,7 @@ public class Main {
 			executor.execute(new StockGrabber(messageQueue, request));
 			Thread.sleep(150);
 
+			ArrayList <Stock.Instant> instant_stocks = new ArrayList <Stock.Instant>();
 			Stock.Instant last_stock = null;
 
 			while (true) {
@@ -42,6 +105,13 @@ public class Main {
 					Stock.Daily [] dailyStocks = stockContainer.values().toArray(new Stock.Daily[0]);
 
 					for (Stock.Daily s: dailyStocks) {
+						String tendency = predict(s._instant_stocks, instant_stocks);
+
+						if (tendency != null) {
+							System.out.print("股票代號: " + s._id + " (" + s._name + ")   ");
+							System.out.println("趨勢: " + tendency);
+						}
+
 						int size = s._instant_stocks.size();
 
 						for (int x = size - 1; x >= 0; x--) {
@@ -51,6 +121,7 @@ public class Main {
 								continue;
 
 							if (i._temporal_volume >= 50) {
+								System.out.println("================ 發現大單 ===============\n");
 								System.out.print("股票代號: " + s._id + " (" + s._name + ")   ");
 								System.out.println("時間: " + i._time_stamp2);
 								System.out.print("現價: " + i._current_price + "   ");
@@ -87,7 +158,7 @@ public class Main {
 												i._sell_price[p], i._sell_volume[p]));
 								}
 
-								System.out.println("-------------------------------------\n");
+								System.out.println("=====================================\n");
 							}
 
 							if (last_stock == null || last_stock._time_stamp != i._time_stamp)
@@ -95,34 +166,11 @@ public class Main {
 						}
 
 						s._instant_stocks.clear();
-
-						/*
-						   System.out.println("日期: " + s._today);
-						   System.out.println("代碼: " + s._id);
-						   System.out.println("今日最高價: " + s._highest_price);
-						   System.out.println("今日最低價: " + s._lowest_price);
-						   System.out.println("開盤價: " + s._open_price);
-						   System.out.println("漲停點: " + s._up_stop_price);
-						   System.out.println("跌停點: " + s._down_stop_price);
-						   System.out.println("昨收: " + s._yesterday_price);
-						   System.out.print("現價: ");
-
-						   for (Stock.Instant i: s._instant_stocks) {
-						   System.out.print(i._current_price + "(" + i._time_stamp + ") ");
-						   }
-						   */
 					}
 				}
 
 				Thread.sleep(1000);
 			}
-
-			/*
-			Thread.sleep(Long.MAX_VALUE);
-			executor.shutdown();
-			while (!executor.isTerminated()) {
-			}
-			*/
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
