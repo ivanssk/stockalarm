@@ -186,23 +186,23 @@ public class Main {
 											i._sell_price[p], i._sell_volume[p]));
 							}
 
-							if (i._temporal_volume >= 5) {
+							if (i._temporal_volume >= 10) {
 								textGraphics.putString(0, 9 + (big_c % 10), "                                                       ");
 								textGraphics.putString(0, 9 + (big_c % 10), big_c + ") " + i._time_stamp2 + ": 大單: " + i._temporal_volume);
 								
 								if (diff > 0) {
 									textGraphics.setBackgroundColor(TextColor.ANSI.RED);
 									String msg = String.format("成交價: %.2f 漲: %.2f", i._current_price, diff);
-									textGraphics.putString(24, 9 + (big_c % 10), msg);
+									textGraphics.putString(33, 9 + (big_c % 10), msg);
 									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
 								} else if (diff < 0) {
 									textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
 									String msg = String.format("成交價: %.2f 跌: %.2f", i._current_price, diff);
-									textGraphics.putString(24, 9 + (big_c % 10), msg);
+									textGraphics.putString(33, 9 + (big_c % 10), msg);
 									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
 								} else {
 									String msg = String.format("成交價: %.2f 平盤    ", i._current_price);
-									textGraphics.putString(24, 9 + (big_c % 10), msg);
+									textGraphics.putString(33, 9 + (big_c % 10), msg);
 								}
 
 								big_c++;
