@@ -187,7 +187,8 @@ public class Main {
 							}
 
 							if (i._temporal_volume >= 10) {
-								textGraphics.putString(0, 9 + (big_c % 10), "                                                       ");
+								textGraphics.putString(0, 9 + (big_c % 10),
+										"                                                                   ");
 								textGraphics.putString(0, 9 + (big_c % 10), big_c + ") " + i._time_stamp2 + ": 大單: " + i._temporal_volume);
 								
 								if (diff > 0) {
@@ -248,6 +249,9 @@ public class Main {
 						}
 
 						public void onCharacter(Screen screen, TextGraphics textGraphics, Character c) throws Exception {
+							if (c != '.' && Character.isDigit(c) == false)
+								return;
+
 							_text_input += c;
 
 							if (_buy_mode == true)
