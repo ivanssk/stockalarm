@@ -18,6 +18,7 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.SGR;
+import com.googlecode.lanterna.TerminalPosition;
 
 public class Main {
 	private static final String [] BUY_LEVEL = new String [] {"買一", "買二", "買三", "買四", "買五"};
@@ -37,15 +38,39 @@ public class Main {
 				float sell_fee1 = instantStock._buy_price[i] * 1000.0f * 0.001425f;
 				float tax1 = instantStock._buy_price[i] * 1000.0f * 0.003f;
 				float c = diff1 - (buy_fee + sell_fee1 + tax1);
-				textGraphics.putString(0, 27 + i,
-						String.format("%d. 賣出價格: %.2f 收益: %.2f", i + 5, instantStock._buy_price[i], c));
+
+				textGraphics.putString(0, 27 + i, "                                                                          ");
+				textGraphics.putString(0, 27 + i, String.format("%d. 賣出價格: %.2f 收益:", i + 5, instantStock._buy_price[i]));
+
+				if (c > 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+					textGraphics.putString(26, 27 + i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else if (c < 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+					textGraphics.putString(26, 27 + i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else
+					textGraphics.putString(26, 27 + i, String.format("%.2f", c));
 
 				float diff2 = (instantStock._sell_price[i] - myPrice) * 1000;
 				float sell_fee2 = instantStock._sell_price[i] * 1000.0f * 0.001425f;
 				float tax2 = instantStock._sell_price[i] * 1000.0f * 0.003f;
 				c = diff2 - (buy_fee + sell_fee2 + tax2);
-				textGraphics.putString(0, 26 - i,
-						String.format("%d. 賣出價格: %.2f 收益: %.2f", 4 - i, instantStock._sell_price[i], c));
+
+				textGraphics.putString(0, 26 - i, "                                                                          ");
+				textGraphics.putString(0, 26 - i, String.format("%d. 賣出價格: %.2f 收益:", 4 - i, instantStock._sell_price[i]));
+
+				if (c > 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+					textGraphics.putString(26, 26 - i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else if (c < 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+					textGraphics.putString(26, 26 - i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else
+					textGraphics.putString(26, 26 - i, String.format("%.2f", c));
 			}
 		} else if (_sell_mode == true) {
 			textGraphics.putString(0, 20, String.format("當沖賣出價格: %.2f", myPrice));
@@ -56,15 +81,39 @@ public class Main {
 				float buy_fee1 = instantStock._buy_price[i] * 1000.0f * 0.001425f;
 				float tax1 = instantStock._buy_price[i] * 1000.0f * 0.003f;
 				float c = diff1 - (sell_fee + buy_fee1 + tax1);
-				textGraphics.putString(0, 27 + i,
-						String.format("%d. 買入價格: %.2f 收益: %.2f", i + 5, instantStock._buy_price[i], c));
+
+				textGraphics.putString(0, 27 + i, "                                                                        ");
+				textGraphics.putString(0, 27 + i, String.format("%d. 買入價格: %.2f 收益:", i + 5, instantStock._buy_price[i]));
+
+				if (c > 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+					textGraphics.putString(26, 27 + i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else if (c < 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+					textGraphics.putString(26, 27 + i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else
+					textGraphics.putString(26, 27 + i, String.format("%.2f", c));
 
 				float diff2 = (myPrice - instantStock._sell_price[i]) * 1000;
 				float buy_fee2 = instantStock._sell_price[i] * 1000.0f * 0.001425f;
 				float tax2 = instantStock._sell_price[i] * 1000.0f * 0.003f;
 				c = diff2 - (sell_fee + buy_fee2 + tax2);
-				textGraphics.putString(0, 26 - i,
-						String.format("%d. 買入價格: %.2f 收益: %.2f", 4 - i, instantStock._sell_price[i], c));
+
+				textGraphics.putString(0, 26 - i, "                                                                        ");
+				textGraphics.putString(0, 26 - i, String.format("%d. 買入價格: %.2f 收益:", 4 - i, instantStock._sell_price[i]));
+
+				if (c > 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+					textGraphics.putString(26, 26 - i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else if (c < 0) {
+					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+					textGraphics.putString(26, 26 - i, String.format("%.2f", c));
+					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+				} else
+					textGraphics.putString(26, 26 - i, String.format("%.2f", c));
 			}
 		}
 	}
@@ -187,26 +236,33 @@ public class Main {
 							}
 
 							if (i._temporal_volume >= 10) {
-								textGraphics.putString(0, 9 + (big_c % 10),
+								textGraphics.putString(0, 9 + big_c,
 										"                                                                   ");
-								textGraphics.putString(0, 9 + (big_c % 10), big_c + ") " + i._time_stamp2 + ": 大單: " + i._temporal_volume);
+
+								if (big_c - 1 < 0)
+									textGraphics.putString(0, 9 + 9, "    ");
+								else
+									textGraphics.putString(0, 9 + big_c - 1, "    ");
+
+								textGraphics.putString(0, 9 + big_c, ">>> " + big_c + ") " +
+										i._time_stamp2 + ": 大單: " + i._temporal_volume);
 								
 								if (diff > 0) {
 									textGraphics.setBackgroundColor(TextColor.ANSI.RED);
 									String msg = String.format("成交價: %.2f 漲: %.2f", i._current_price, diff);
-									textGraphics.putString(33, 9 + (big_c % 10), msg);
+									textGraphics.putString(33, 9 + big_c, msg);
 									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
 								} else if (diff < 0) {
 									textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
 									String msg = String.format("成交價: %.2f 跌: %.2f", i._current_price, diff);
-									textGraphics.putString(33, 9 + (big_c % 10), msg);
+									textGraphics.putString(33, 9 + big_c, msg);
 									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
 								} else {
 									String msg = String.format("成交價: %.2f 平盤    ", i._current_price);
-									textGraphics.putString(33, 9 + (big_c % 10), msg);
+									textGraphics.putString(33, 9 + big_c, msg);
 								}
 
-								big_c++;
+								big_c = (big_c + 1) % 10;
 							}
 
 							if (last_stock == null || last_stock._time_stamp2.equals(i._time_stamp2) == false)
@@ -229,6 +285,7 @@ public class Main {
 							else
 								textGraphics.putString(0, 21, "當沖賣出: ");
 
+							screen.setCursorPosition(new TerminalPosition(10, 21));
 							screen.refresh();
 
 							_buy_mode = buyMode;
@@ -244,6 +301,7 @@ public class Main {
 								_text_input = null;
 							}
 
+							screen.setCursorPosition(new TerminalPosition(0, 0));
 							textGraphics.putString(0, 21, "                    ");
 							screen.refresh();
 						}
@@ -253,6 +311,7 @@ public class Main {
 								return;
 
 							_text_input += c;
+							screen.setCursorPosition(new TerminalPosition(10 + _text_input.length(), 21));
 
 							if (_buy_mode == true)
 								textGraphics.putString(0, 21, "當沖買入: " + _text_input);
@@ -267,6 +326,7 @@ public class Main {
 								textGraphics.putString(0, 21, "                    ");
 
 								_text_input = _text_input.substring(0, _text_input.length() - 1);
+								screen.setCursorPosition(new TerminalPosition(10 + _text_input.length(), 21));
 
 								if (_buy_mode == true)
 									textGraphics.putString(0, 21, "當沖買入: " + _text_input);
