@@ -75,16 +75,16 @@ public class MessageParser implements Runnable {
 	}
 
 	public void run() {
-		while (true) {
-			try {
+		try {
+			while (true) {
 				String message = _messageQueue.poll(10L, TimeUnit.MILLISECONDS); 
 
 				if (message == null)
 					continue;
 
 				parse(message, _stockContainer);
-			} catch (Exception e) {
 			}
+		} catch (Exception e) {
 		}
 	}
 }

@@ -5,8 +5,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 
 public class StockGrabber implements Runnable {
-	private static final String BaseURL = "http://mis.twse.com.tw/stock/index.jsp";
-
+	private static final String BaseURL = "http://mis.twse.com.tw/stock/index.jsp"; 
 	private String [] _request;
 	private ArrayBlockingQueue<String> _messageQueue;
 

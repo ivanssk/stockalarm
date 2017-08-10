@@ -13,79 +13,25 @@ import java.lang.Math;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.TerminalPosition;
+
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.SGR;
+
 public class Main {
 	private static final String [] BUY_LEVEL = new String [] {"買一", "買二", "買三", "買四", "買五"};
 	private static final String [] SELL_LEVEL = new String [] {"賣一", "賣二", "賣三", "賣四", "賣五"};
 
-	public static final String ANSI_RESET = "\u001B[0m";
-	public static final String ANSI_RED = "\u001B[41m";
-	public static final String ANSI_GREEN = "\u001B[42m";
-
-	static private String predict(ArrayList<Stock.Instant> instant_stocks, ArrayList <Stock.Instant> stocks) {
-		int tendency_up = -1;
-		int tendency_down = -1;
-		int tendency_equal = -1;
-
-		for (Stock.Instant s: instant_stocks) {
-			int size = stocks.size();
-			boolean found = false;
-
-			for (int i = 0; i < size; i++) {
-				if (s._time_stamp2.equals(stocks.get(i)._time_stamp2)) {
-					found = true;
-					break;
-				}
-			}
-
-			if (found == false)
-				stocks.add(s);
-		}
-
-		if (stocks.size() < 11)
-			System.out.println(stocks.size());
-
-		String v = "";
-
-		Stock.Instant previous_stock = null;
-
-		while (stocks.size() >= 11) {
-			previous_stock = stocks.remove(0);
-
-			for (int j = 0; j < 10; j++) {
-				Stock.Instant s = stocks.get(j);
-				float diff = s._current_price - previous_stock._current_price;
-
-				v += s._current_price + " ";
-				previous_stock = s;
-
-				if (diff > 0) {
-					tendency_up++;
-					tendency_equal = 0;
-					//return ANSI_RED + "漲" + ANSI_RESET + " 時間: " + s._time_stamp2 + " " + v;
-				}
-				else if (diff < 0) {
-					tendency_down++;
-					tendency_equal = 0;
-					//return ANSI_GREEN + "跌" + ANSI_RESET + " 時間: " + s._time_stamp2 + " " + v;
-				}
-				else
-					tendency_equal++;
-			}
-		}
-
-		if (tendency_up == -1 && tendency_down == -1 && tendency_equal == -1)
-			return null;
-
-		if (tendency_up > tendency_down && tendency_up > tendency_equal)
-			return ANSI_RED + "漲" + ANSI_RESET + " 時間: " + previous_stock._time_stamp2 + " " + v;
-		else if (tendency_down > tendency_up && tendency_up > tendency_equal)
-			return ANSI_GREEN + "跌" + ANSI_RESET + " 時間: " + previous_stock._time_stamp2 + " " + v;
-
-		return "平盤" + " 時間: " + previous_stock._time_stamp2 + " " + v;
-	}
-
 	static public void main(String [] args) {
 		try {
+			Screen screen = new DefaultTerminalFactory().createScreen();
+			screen.startScreen();
+			TextGraphics textGraphics = screen.newTextGraphics();
+
 			ExecutorService executor = Executors.newFixedThreadPool(args.length + 1);
 
 			ArrayBlockingQueue<String> messageQueue = new ArrayBlockingQueue<String>(args.length * 100 * 100);
@@ -100,76 +46,144 @@ public class Main {
 			ArrayList <Stock.Instant> instant_stocks = new ArrayList <Stock.Instant>();
 			Stock.Instant last_stock = null;
 
+			int big_c = 0;
+
 			while (true) {
 				synchronized (stockContainer) {
 					Stock.Daily [] dailyStocks = stockContainer.values().toArray(new Stock.Daily[0]);
 
 					for (Stock.Daily s: dailyStocks) {
-						String tendency = predict(s._instant_stocks, instant_stocks);
+						for (Stock.Instant i: s._instant_stocks) {
+							float diff = 0.0f;
 
-						if (tendency != null) {
-							System.out.print("股票代號: " + s._id + " (" + s._name + ")   ");
-							System.out.println("趨勢: " + tendency);
-						}
+							if (last_stock == null)
+								diff = i._current_price - s._yesterday_price;
+							else
+								diff = i._current_price - last_stock._current_price;
 
-						int size = s._instant_stocks.size();
+							textGraphics.putString(0, 0, "時間: " + i._time_stamp2);
+							textGraphics.putString(25, 0, "股票代號: " + s._id + "(" + s._name + ")");
+							textGraphics.putString(0, 1, "======================================================================");
+							textGraphics.putString(0, 2, String.format("開盤價: %.2f 昨收: %.2f",
+										s._open_price, s._yesterday_price));
+							textGraphics.putString(0, 3, String.format("最高價: %.2f 最低價: %.2f",
+										s._highest_price, s._lowest_price));
 
-						for (int x = size - 1; x >= 0; x--) {
-							Stock.Instant i = s._instant_stocks.get(x);
-
-							if (last_stock != null && last_stock._time_stamp == i._time_stamp)
-								continue;
-
-							if (i._temporal_volume >= 50) {
-								System.out.println("================ 發現大單 ===============\n");
-								System.out.print("股票代號: " + s._id + " (" + s._name + ")   ");
-								System.out.println("時間: " + i._time_stamp2);
-								System.out.print("現價: " + i._current_price + "   ");
-
-								float diff = 0.0f;
-								
-								if (last_stock == null)
-									diff = i._current_price - s._yesterday_price;
-								else
-									diff = i._current_price - last_stock._current_price;
-
-								if (diff > 0)
-									System.out.println(String.format("漲跌: " + ANSI_RED + "%.2f" + ANSI_RESET, diff));
-								else if (diff < 0)
-									System.out.println(String.format("漲跌: " + ANSI_GREEN + "%.2f" + ANSI_RESET, Math.abs(diff)));
-								else
-									System.out.println(String.format("漲跌: %.2f", diff));
-
-								System.out.print("今日最高價: " + s._highest_price + "   ");
-								System.out.println("今日最低價: " + s._lowest_price);
-
-								System.out.print("單量: " + ANSI_RED + i._temporal_volume + ANSI_RESET + "   ");
-								System.out.println("累積量: " + i._volume);
-
-								StringBuilder buy_ranking = new StringBuilder();
-
-								System.out.println("");
-
-								for (int p = 0; p < 5; p++) {
-									System.out.println(String.format("%s: %.2f(%3d)  %s: %.2f(%3d)",
-												BUY_LEVEL[p],
-												i._buy_price[p], i._buy_volume[p],
-												SELL_LEVEL[p],
-												i._sell_price[p], i._sell_volume[p]));
-								}
-
-								System.out.println("=====================================\n");
+							float d2 = i._current_price - s._yesterday_price;
+							if (d2 > 0) {
+								textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+								textGraphics.putString(0, 4, String.format("漲跌: +%.2f", d2));
+								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+							} else if (d2 < 0) {
+								textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+								textGraphics.putString(0, 4, String.format("漲跌: %.2f", d2));
+								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+							} else {
+								textGraphics.putString(0, 4, String.format("漲跌: %.2f", d2));
 							}
 
-							if (last_stock == null || last_stock._time_stamp != i._time_stamp)
+							textGraphics.putString(0, 5, "                                    ");
+
+							if (diff > 0) {
+								textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+								String msg = String.format("現價: %.2f (+%.2f)", i._current_price, diff);
+								textGraphics.putString(0, 5, msg);
+								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+							} else if (diff < 0) {
+								textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+								String msg = String.format("現價: %.2f (%.2f)", i._current_price, diff);
+								textGraphics.putString(0, 5, msg);
+								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+							} else {
+								String msg = String.format("現價: %.2f (+%.2f)", i._current_price, diff);
+								textGraphics.putString(0, 5, msg);
+							}
+
+							textGraphics.putString(0, 6, "單量: " + i._temporal_volume);
+							textGraphics.putString(0, 7, "累積量: " + i._volume);
+
+							if (i._current_price == i._buy_price[0]) {
+								textGraphics.putString(33, 2, "買一: ");
+								textGraphics.putString(39, 2,
+										String.format("%.2f(%3d)", i._buy_price[0], i._buy_volume[0]),
+										SGR.UNDERLINE);
+
+								textGraphics.putString(52, 2,
+										String.format("賣一: %.2f(%3d)",
+											i._sell_price[0], i._sell_volume[0]));
+							} else if (i._current_price == i._sell_price[0]) {
+								textGraphics.putString(33, 2,
+										String.format("買一: %.2f(%3d)", i._buy_price[0], i._buy_volume[0]));
+
+								textGraphics.putString(52, 2, "賣一: ");
+								textGraphics.putString(57, 2,
+										String.format("%.2f(%3d)", i._sell_price[0], i._sell_volume[0]),
+										SGR.UNDERLINE);
+							} else {
+								textGraphics.putString(33, 2,
+										String.format("買一: %.2f(%3d)", i._buy_price[0], i._buy_volume[0]));
+								textGraphics.putString(52, 2,
+										String.format("賣一: %.2f(%3d)",
+											i._sell_price[0], i._sell_volume[0]));
+							}
+
+							for (int p = 1; p < 5; p++) {
+								textGraphics.putString(33, 2 + p, String.format("%s: %.2f(%3d)  %s: %.2f(%3d)",
+											BUY_LEVEL[p],
+											i._buy_price[p], i._buy_volume[p],
+											SELL_LEVEL[p],
+											i._sell_price[p], i._sell_volume[p]));
+							}
+
+							if (i._temporal_volume >= 5) {
+								textGraphics.putString(0, 9 + (big_c % 10), "                                                       ");
+								textGraphics.putString(0, 9 + (big_c % 10), big_c + ") " + i._time_stamp2 + ": 大單: " + i._temporal_volume);
+								
+								if (diff > 0) {
+									textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+									String msg = String.format("成交價: %.2f 漲: %.2f", i._current_price, diff);
+									textGraphics.putString(24, 9 + (big_c % 10), msg);
+									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+								} else if (diff < 0) {
+									textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+									String msg = String.format("成交價: %.2f 跌: %.2f", i._current_price, diff);
+									textGraphics.putString(24, 9 + (big_c % 10), msg);
+									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+								} else {
+									String msg = String.format("成交價: %.2f 平盤    ", i._current_price);
+									textGraphics.putString(24, 9 + (big_c % 10), msg);
+								}
+
+								big_c++;
+							}
+
+							if (last_stock == null || last_stock._time_stamp2.equals(i._time_stamp2) == false)
 								last_stock = i;
 						}
 
 						s._instant_stocks.clear();
 					}
+					screen.refresh();
 				}
 
-				Thread.sleep(1000);
+				for (int i = 0; i < 50; i++) {
+					KeyStroke k = screen.pollInput();
+
+					if (k != null && k.getCharacter().equals('q') == true) {
+						screen.stopScreen();
+
+						executor.shutdown();
+						executor.shutdownNow();
+
+						if (!executor.awaitTermination(5, TimeUnit.SECONDS))
+							System.out.println("Pool did not terminate");
+
+						System.out.println("bye");
+						return;
+					}
+
+					Thread.sleep(10);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

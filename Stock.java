@@ -15,6 +15,12 @@ public class Stock {
 
 		public void add(Instant instantStock) {
 			synchronized (_instant_stocks) {
+				/*
+				if (_instant_stocks.size() > 0)
+					if (_instant_stocks.get(_instant_stocks.size() - 1)._time_stamp == instantStock._time_stamp)
+						return;
+				*/
+
 				_instant_stocks.add(instantStock);
 			}
 		}
