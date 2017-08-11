@@ -3,7 +3,7 @@ import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.input.KeyStroke;
 
-public class KeyInputHandler {
+public class Keyboard {
 	public interface IListener {
 		void onStartTextInputModeEnter(Screen screen, TextGraphics textGraphics, boolean buyMode, boolean sellMode) throws Exception;
 		void onLeaveTextInputModeEnter(Screen screen, TextGraphics textGraphics, boolean isFinished) throws Exception;
