@@ -246,6 +246,9 @@ public class Main {
 
 	static int _big_order_index = 0;
 	static private void showBigOrder(TextGraphics textGraphics, Stock.Daily s, Stock.Instant i, Stock.Instant lastStock, int amountOfOrder) {
+		if (lastStock != null && i._time_stamp == lastStock._time_stamp && i._volume == lastStock._volume)
+			return;
+
 		if (i._temporal_volume < amountOfOrder)
 			return;
 
@@ -319,7 +322,7 @@ public class Main {
 
 							showBigOrder(textGraphics, s, i, lastStock, 10);
 
-							if (lastStock == null || lastStock._time_stamp2.equals(i._time_stamp2) == false)
+							if (lastStock == null || lastStock._time_stamp != i._time_stamp)
 								lastStock = i;
 						}
 
