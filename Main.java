@@ -121,14 +121,24 @@ public class Main {
 
 				if (c > 0) {
 					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-					textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
+					if (instantStock._current_price == instantStock._buy_price[i])
+						textGraphics.putString(16, 27 + i, String.format("收益: %d", c), SGR.UNDERLINE);
+					else
+						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
 					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
 				} else if (c < 0) {
 					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-					textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
+					if (instantStock._current_price == instantStock._buy_price[i])
+						textGraphics.putString(16, 27 + i, String.format("收益: %d", c), SGR.UNDERLINE);
+					else
+						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
 					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else
-					textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
+				} else {
+					if (instantStock._current_price == instantStock._buy_price[i])
+						textGraphics.putString(16, 27 + i, String.format("收益: %d", c, SGR.UNDERLINE));
+					else
+						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
+				}
 
 				float diff2 = (myPrice - instantStock._sell_price[i]) * 1000;
 				int buy_fee2 = (int) (instantStock._sell_price[i] * 1000.0f * 0.001425f);
