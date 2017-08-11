@@ -25,155 +25,76 @@ public class Main {
 	private static boolean _sell_mode;
 	private static Float _my_stock_price = null;
 
+	static private void showEstimate(int index, int y, TextGraphics textGraphics,
+			int fee1, int fee2, int tax, float diff, int c, float currentPrice, float advicePrice, String title) {
+		textGraphics.putString(0, y, "                                                                          ");
+		textGraphics.putString(0, y, String.format("%d. %s:", index, title));
+
+		if (currentPrice == advicePrice)
+			textGraphics.putString(9, y, String.format("%.2f", advicePrice), SGR.UNDERLINE);
+		else
+			textGraphics.putString(9, y, String.format("%.2f", advicePrice));
+
+		if (c > 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+			if (currentPrice == advicePrice)
+				textGraphics.putString(16, y, String.format("收益: %d", c), SGR.UNDERLINE);
+			else
+				textGraphics.putString(16, y, String.format("收益: %d", c));
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else if (c < 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+			if (currentPrice == advicePrice)
+				textGraphics.putString(16, y, String.format("收益: %d", c), SGR.UNDERLINE);
+			else
+				textGraphics.putString(16, y, String.format("收益: %d", c));
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else {
+			if (currentPrice== advicePrice)
+				textGraphics.putString(16, y, String.format("收益: %d", c), SGR.UNDERLINE);
+			else
+				textGraphics.putString(16, y, String.format("收益: %d", c));
+		}
+	}
+
 	static private void showCost(TextGraphics textGraphics, float myPrice, Stock.Instant instantStock) {
-		if (_buy_mode == true) {
+		if (_buy_mode == true)
 			textGraphics.putString(0, 20, String.format("當沖買入: %.2f", myPrice));
-			int buy_fee = (int) (myPrice * 1000.0f * 0.001425f);
-
-			for (int i = 0; i < 5; i++) {
-				float diff1 = (instantStock._buy_price[i] - myPrice) * 1000.0f;
-				int sell_fee1 = (int) (instantStock._buy_price[i] * 1000.0f * 0.001425f);
-				int tax1 = (int) (instantStock._sell_price[i] * 1000.0f * 0.003f / 2.0f);
-				int c = (int) (diff1 - (buy_fee + sell_fee1 + tax1));
-
-				textGraphics.putString(0, 27 + i, "                                                                          ");
-				textGraphics.putString(0, 27 + i, String.format("%d. 賣出:", i + 5));
-
-				if (instantStock._current_price == instantStock._buy_price[i])
-					textGraphics.putString(9, 27 + i, String.format("%.2f", instantStock._buy_price[i]), SGR.UNDERLINE);
-				else
-					textGraphics.putString(9, 27 + i, String.format("%.2f", instantStock._buy_price[i]));
-
-				if (c > 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-
-					if (instantStock._current_price == instantStock._buy_price[i])
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else if (c < 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-
-					if (instantStock._current_price == instantStock._buy_price[i])
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else {
-					if (instantStock._current_price == instantStock._buy_price[i])
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
-				}
-
-				float diff2 = (instantStock._sell_price[i] - myPrice) * 1000;
-				int sell_fee2 = (int) (instantStock._sell_price[i] * 1000.0f * 0.001425f);
-				int tax2 = (int) (instantStock._sell_price[i] * 1000.0f * 0.003f / 2.0f);
-				c = (int) (diff2 - (buy_fee + sell_fee2 + tax2));
-
-				textGraphics.putString(0, 26 - i, "                                                                          ");
-				textGraphics.putString(0, 26 - i, String.format("%d. 賣出:", 4 - i));
-
-				if (instantStock._current_price == instantStock._sell_price[i])
-					textGraphics.putString(9, 26 - i, String.format("%.2f", instantStock._sell_price[i]), SGR.UNDERLINE);
-				else
-					textGraphics.putString(9, 26 - i, String.format("%.2f", instantStock._sell_price[i]));
-
-				if (c > 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-					if (instantStock._current_price == instantStock._sell_price[i])
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else if (c < 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-					if (instantStock._current_price == instantStock._sell_price[i])
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else {
-					if (instantStock._current_price == instantStock._sell_price[i])
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c));
-				}
-			}
-		} else if (_sell_mode == true) {
+		else if (_sell_mode == true)
 			textGraphics.putString(0, 20, String.format("當沖賣出: %.2f", myPrice));
-			int sell_fee = (int) (myPrice * 1000.0f * 0.001425f);
 
-			for (int i = 0; i < 5; i++) {
-				float diff1 = (myPrice - instantStock._buy_price[i]) * 1000;
-				int buy_fee1 = (int) (instantStock._buy_price[i] * 1000.0f * 0.001425f);
-				int tax1 = (int) (myPrice * 1000.0f * 0.003f / 2.0f);
-				int c = (int) (diff1 - (sell_fee + buy_fee1 + tax1));
+		int fee1 = (int) (myPrice * 1000.0f * 0.001425f);
 
-				textGraphics.putString(0, 27 + i, "                                                                        ");
-				textGraphics.putString(0, 27 + i, String.format("%d. 買入:", i + 5));
+		for (int i = 0; i < 5; i++) {
+			float diff = 0.0f;
+			if (_buy_mode == true)
+				diff = (instantStock._buy_price[i] - myPrice) * 1000.0f;
+			else if (_sell_mode == true)
+				diff = (myPrice - instantStock._buy_price[i]) * 1000.0f;
 
-				if (instantStock._current_price == instantStock._buy_price[i])
-					textGraphics.putString(9, 27 + i, String.format("%.2f", instantStock._buy_price[i]), SGR.UNDERLINE);
-				else
-					textGraphics.putString(9, 27 + i, String.format("%.2f", instantStock._buy_price[i]));
+			int fee2 = (int) (instantStock._buy_price[i] * 1000.0f * 0.001425f);
 
-				if (c > 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-					if (instantStock._current_price == instantStock._buy_price[i])
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else if (c < 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-					if (instantStock._current_price == instantStock._buy_price[i])
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else {
-					if (instantStock._current_price == instantStock._buy_price[i])
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c, SGR.UNDERLINE));
-					else
-						textGraphics.putString(16, 27 + i, String.format("收益: %d", c));
-				}
+			int tax = 0;
+			if (_buy_mode == true)
+				tax = (int) (instantStock._sell_price[i] * 1000.0f * 0.003f / 2.0f);
+			else if (_sell_mode == true)
+				tax = (int) (myPrice * 1000.0f * 0.003f / 2.0f);
 
-				float diff2 = (myPrice - instantStock._sell_price[i]) * 1000;
-				int buy_fee2 = (int) (instantStock._sell_price[i] * 1000.0f * 0.001425f);
-				int tax2 = (int) (myPrice * 1000.0f * 0.003f / 2.0f);
-				c = (int) (diff2 - (sell_fee + buy_fee2 + tax2));
+			int c = (int) (diff - (fee1 + fee2 + tax));
 
-				textGraphics.putString(0, 26 - i, "                                                                        ");
-				textGraphics.putString(0, 26 - i, String.format("%d. 買入:", 4 - i));
+			showEstimate(i + 5, 27 + i, textGraphics, fee1, fee2, tax, diff, c,
+					instantStock._current_price, instantStock._buy_price[i], "賣出");
 
-				if (instantStock._current_price == instantStock._sell_price[i])
-					textGraphics.putString(9, 26 - i, String.format("%.2f", instantStock._sell_price[i]), SGR.UNDERLINE);
-				else
-					textGraphics.putString(9, 26 - i, String.format("%.2f", instantStock._sell_price[i]));
+			if (_buy_mode == true)
+				diff = (instantStock._sell_price[i] - myPrice) * 1000;
+			else if (_sell_mode == true)
+				diff = (myPrice - instantStock._sell_price[i]) * 1000;
 
-				if (c > 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-					if (instantStock._current_price == instantStock._sell_price[i])
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else if (c < 0) {
-					textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-					if (instantStock._current_price == instantStock._sell_price[i])
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c));
-					textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-				} else {
-					if (instantStock._current_price == instantStock._sell_price[i])
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c), SGR.UNDERLINE);
-					else
-						textGraphics.putString(16, 26 - i, String.format("收益: %d", c));
-				}
-			}
+			fee2 = (int) (instantStock._sell_price[i] * 1000.0f * 0.001425f);
+			c = (int) (diff - (fee1 + fee2 + tax));
+
+			showEstimate(4 - i, 26 - i, textGraphics, fee1, fee2, tax, diff, c,
+					instantStock._current_price, instantStock._sell_price[i], "賣出");
 		}
 	}
 
