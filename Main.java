@@ -146,7 +146,7 @@ public class Main {
 		textGraphics.putString(0, 6, String.format("單量: %d 總量: %d", i._temporal_volume, i._volume));
 	}
 
-	private static void showFirstFive(TextGraphics textGraphics, Stock.Instant i) {
+	private static void showLeading5NicePrice(TextGraphics textGraphics, Stock.Instant i) {
 		if (i._current_price == i._buy_price[0]) {
 			textGraphics.putString(33, 2, "                                                 ");
 			textGraphics.putString(33, 2, "買一: ");
@@ -246,7 +246,7 @@ public class Main {
 					for (Stock.Daily s: dailyStocks) {
 						for (Stock.Instant i: s._instant_stocks) {
 							showDailyStock(textGraphics, s, i, lastStock);
-							showFirstFive(textGraphics, i);
+							showLeading5NicePrice(textGraphics, i);
 
 							if (_my_stock_price != null)
 								showCost(textGraphics, _my_stock_price, i);
