@@ -1,9 +1,6 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Map;
@@ -170,6 +167,123 @@ public class Main {
 		}
 	}
 
+	static void showDailyStock(TextGraphics textGraphics, Stock.Daily s, Stock.Instant i, Stock.Instant lastStock) {
+		float diff = 0.0f;
+
+		if (lastStock == null)
+			diff = i._current_price - s._yesterday_price;
+		else
+			diff = i._current_price - lastStock._current_price;
+
+		textGraphics.putString(0, 0, "時間: " + i._time_stamp2);
+		textGraphics.putString(25, 0, "股票代號: " + s._id + "(" + s._name + ")");
+		textGraphics.putString(0, 1, "======================================================================");
+		textGraphics.putString(0, 2, String.format("開盤價: %.2f 昨收: %.2f", s._open_price, s._yesterday_price));
+		textGraphics.putString(0, 3, String.format("最高價: %.2f 最低價: %.2f", s._highest_price, s._lowest_price));
+
+		float d2 = i._current_price - s._yesterday_price;
+		textGraphics.putString(0, 4, "                               ");
+
+		if (d2 > 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+			textGraphics.putString(0, 4, String.format("漲跌: +%.2f", d2));
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else if (d2 < 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+			textGraphics.putString(0, 4, String.format("漲跌: %.2f", d2));
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else {
+			textGraphics.putString(0, 4, String.format("漲跌: %.2f", d2));
+		}
+
+		textGraphics.putString(0, 5, "                                    ");
+
+		if (diff > 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+			String msg = String.format("現價: %.2f (+%.2f)", i._current_price, diff); textGraphics.putString(0, 5, msg);
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else if (diff < 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+			String msg = String.format("現價: %.2f (%.2f)", i._current_price, diff);
+			textGraphics.putString(0, 5, msg);
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else {
+			String msg = String.format("現價: %.2f (+%.2f)", i._current_price, diff);
+			textGraphics.putString(0, 5, msg);
+		}
+
+		textGraphics.putString(0, 6, String.format("單量: %d 總量: %d", i._temporal_volume, i._volume));
+	}
+
+	private static void showFirstFive(TextGraphics textGraphics, Stock.Instant i) {
+		if (i._current_price == i._buy_price[0]) {
+			textGraphics.putString(33, 2, "                                                 ");
+			textGraphics.putString(33, 2, "買一: ");
+			textGraphics.putString(39, 2, String.format("%.2f(%d)", i._buy_price[0], i._buy_volume[0]), SGR.UNDERLINE);
+
+			textGraphics.putString(52, 2, String.format("賣一: %.2f(%d)", i._sell_price[0], i._sell_volume[0]));
+		} else if (i._current_price == i._sell_price[0]) {
+			textGraphics.putString(33, 2, "                                                 ");
+			textGraphics.putString(33, 2, String.format("買一: %.2f(%d)", i._buy_price[0], i._buy_volume[0]));
+
+			textGraphics.putString(52, 2, "賣一: ");
+			textGraphics.putString(58, 2, String.format("%.2f(%d)", i._sell_price[0], i._sell_volume[0]), SGR.UNDERLINE);
+		} else {
+			textGraphics.putString(33, 2, "                                                 ");
+			textGraphics.putString(33, 2, String.format("買一: %.2f(%d)", i._buy_price[0], i._buy_volume[0]));
+			textGraphics.putString(52, 2, String.format("賣一: %.2f(%d)", i._sell_price[0], i._sell_volume[0]));
+		}
+
+		for (int p = 1; p < 5; p++) {
+			textGraphics.putString(33, 2 + p, "                           ");
+			textGraphics.putString(52, 2 + p, "                           ");
+
+			textGraphics.putString(33, 2 + p, String.format("%s: %.2f(%d)", BUY_LEVEL[p], i._buy_price[p], i._buy_volume[p]));
+
+			textGraphics.putString(52, 2 + p, String.format("%s: %.2f(%d)", SELL_LEVEL[p], i._sell_price[p], i._sell_volume[p]));
+		}
+	}
+
+	static int _big_order_index = 0;
+	static private void showBigOrder(TextGraphics textGraphics, Stock.Daily s, Stock.Instant i, Stock.Instant lastStock, int amountOfOrder) {
+		if (i._temporal_volume < amountOfOrder)
+			return;
+
+		textGraphics.putString(0, 9 + _big_order_index, "                                                                   ");
+
+		if (_big_order_index - 1 < 0)
+			textGraphics.putString(0, 9 + 9, "    ");
+		else
+			textGraphics.putString(0, 9 + _big_order_index - 1, "    ");
+
+		textGraphics.putString(0, 9 + _big_order_index,
+				String.format(">>> %d) %s: 大單: %d", _big_order_index, i._time_stamp2, i._temporal_volume));
+
+		float diff = 0.0f;
+
+		if (lastStock == null)
+			diff = i._current_price - s._yesterday_price;
+		else
+			diff = i._current_price - lastStock._current_price;
+
+		if (diff > 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.RED);
+			String msg = String.format("成交價: %.2f 漲: %.2f", i._current_price, diff);
+			textGraphics.putString(33, 9 + _big_order_index, msg);
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else if (diff < 0) {
+			textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
+			String msg = String.format("成交價: %.2f 跌: %.2f", i._current_price, diff);
+			textGraphics.putString(33, 9 + _big_order_index, msg);
+			textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
+		} else {
+			String msg = String.format("成交價: %.2f 平盤    ", i._current_price);
+			textGraphics.putString(33, 9 + _big_order_index, msg);
+		}
+
+		_big_order_index = (_big_order_index + 1) % 10;
+	}
+
 	static public void main(String [] args) {
 		try {
 			Screen screen = new DefaultTerminalFactory().createScreen();
@@ -188,10 +302,7 @@ public class Main {
 			Thread.sleep(150);
 
 			ArrayList <Stock.Instant> instant_stocks = new ArrayList <Stock.Instant>();
-			Stock.Instant last_stock = null;
-
-			int big_c = 0;
-			Float buy_cost = null;
+			Stock.Instant lastStock = null;
 			KeyInputHandler keyInputHandler = new KeyInputHandler();
 
 			while (true) {
@@ -200,132 +311,16 @@ public class Main {
 
 					for (Stock.Daily s: dailyStocks) {
 						for (Stock.Instant i: s._instant_stocks) {
-							float diff = 0.0f;
-
-							if (last_stock == null)
-								diff = i._current_price - s._yesterday_price;
-							else
-								diff = i._current_price - last_stock._current_price;
-
-							textGraphics.putString(0, 0, "時間: " + i._time_stamp2);
-							textGraphics.putString(25, 0, "股票代號: " + s._id + "(" + s._name + ")");
-							textGraphics.putString(0, 1, "======================================================================");
-							textGraphics.putString(0, 2, String.format("開盤價: %.2f 昨收: %.2f",
-										s._open_price, s._yesterday_price));
-							textGraphics.putString(0, 3, String.format("最高價: %.2f 最低價: %.2f",
-										s._highest_price, s._lowest_price));
-
-							float d2 = i._current_price - s._yesterday_price;
-
-							textGraphics.putString(0, 4, "                               ");
-							if (d2 > 0) {
-								textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-								textGraphics.putString(0, 4, String.format("漲跌: +%.2f", d2));
-								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-							} else if (d2 < 0) {
-								textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-								textGraphics.putString(0, 4, String.format("漲跌: %.2f", d2));
-								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-							} else {
-								textGraphics.putString(0, 4, String.format("漲跌: %.2f", d2));
-							}
-
-							textGraphics.putString(0, 5, "                                    ");
-
-							if (diff > 0) {
-								textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-								String msg = String.format("現價: %.2f (+%.2f)", i._current_price, diff);
-								textGraphics.putString(0, 5, msg);
-								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-							} else if (diff < 0) {
-								textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-								String msg = String.format("現價: %.2f (%.2f)", i._current_price, diff);
-								textGraphics.putString(0, 5, msg);
-								textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-							} else {
-								String msg = String.format("現價: %.2f (+%.2f)", i._current_price, diff);
-								textGraphics.putString(0, 5, msg);
-							}
-
-							textGraphics.putString(0, 6, String.format("單量: %d 總量: %d", i._temporal_volume,
-										i._volume));
+							showDailyStock(textGraphics, s, i, lastStock);
+							showFirstFive(textGraphics, i);
 
 							if (_my_stock_price != null)
 								showCost(textGraphics, _my_stock_price, i);
 
-							if (i._current_price == i._buy_price[0]) {
-								textGraphics.putString(33, 2, "                                                 ");
-								textGraphics.putString(33, 2, "買一: ");
-								textGraphics.putString(39, 2,
-										String.format("%.2f(%d)", i._buy_price[0], i._buy_volume[0]),
-										SGR.UNDERLINE);
+							showBigOrder(textGraphics, s, i, lastStock, 10);
 
-								textGraphics.putString(52, 2,
-										String.format("賣一: %.2f(%d)",
-											i._sell_price[0], i._sell_volume[0]));
-							} else if (i._current_price == i._sell_price[0]) {
-								textGraphics.putString(33, 2, "                                                 ");
-								textGraphics.putString(33, 2,
-										String.format("買一: %.2f(%d)", i._buy_price[0], i._buy_volume[0]));
-
-								textGraphics.putString(52, 2, "賣一: ");
-								textGraphics.putString(58, 2,
-										String.format("%.2f(%d)", i._sell_price[0], i._sell_volume[0]),
-										SGR.UNDERLINE);
-							} else {
-								textGraphics.putString(33, 2, "                                                 ");
-								textGraphics.putString(33, 2,
-										String.format("買一: %.2f(%d)", i._buy_price[0], i._buy_volume[0]));
-								textGraphics.putString(52, 2,
-										String.format("賣一: %.2f(%d)",
-											i._sell_price[0], i._sell_volume[0]));
-							}
-
-							for (int p = 1; p < 5; p++) {
-								textGraphics.putString(33, 2 + p, "                           ");
-								textGraphics.putString(52, 2 + p, "                           ");
-
-								textGraphics.putString(33, 2 + p, String.format("%s: %.2f(%d)",
-											BUY_LEVEL[p],
-											i._buy_price[p], i._buy_volume[p]));
-
-								textGraphics.putString(52, 2 + p, String.format("%s: %.2f(%d)",
-											SELL_LEVEL[p],
-											i._sell_price[p], i._sell_volume[p]));
-							}
-
-							if (i._temporal_volume >= 10) {
-								textGraphics.putString(0, 9 + big_c,
-										"                                                                   ");
-
-								if (big_c - 1 < 0)
-									textGraphics.putString(0, 9 + 9, "    ");
-								else
-									textGraphics.putString(0, 9 + big_c - 1, "    ");
-
-								textGraphics.putString(0, 9 + big_c, ">>> " + big_c + ") " +
-										i._time_stamp2 + ": 大單: " + i._temporal_volume);
-								
-								if (diff > 0) {
-									textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-									String msg = String.format("成交價: %.2f 漲: %.2f", i._current_price, diff);
-									textGraphics.putString(33, 9 + big_c, msg);
-									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-								} else if (diff < 0) {
-									textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-									String msg = String.format("成交價: %.2f 跌: %.2f", i._current_price, diff);
-									textGraphics.putString(33, 9 + big_c, msg);
-									textGraphics.setBackgroundColor(TextColor.ANSI.DEFAULT);
-								} else {
-									String msg = String.format("成交價: %.2f 平盤    ", i._current_price);
-									textGraphics.putString(33, 9 + big_c, msg);
-								}
-
-								big_c = (big_c + 1) % 10;
-							}
-
-							if (last_stock == null || last_stock._time_stamp2.equals(i._time_stamp2) == false)
-								last_stock = i;
+							if (lastStock == null || lastStock._time_stamp2.equals(i._time_stamp2) == false)
+								lastStock = i;
 						}
 
 						s._instant_stocks.clear();
