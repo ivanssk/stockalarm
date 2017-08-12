@@ -38,7 +38,7 @@ public class KeyFunctionHandler implements Keyboard.IListener {
 	}
 
 	public void onLeaveTextInputModeEnter(Screen screen, TextGraphics textGraphics, boolean isFinished) throws Exception {
-		if (isFinished == true)
+		if (isFinished == true && _text_input.length() > 0)
 			_my_price = Float.valueOf(_text_input);
 		else {
 			_my_price = null;
