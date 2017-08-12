@@ -1,3 +1,5 @@
+package com.org.finance.stock;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.HashMap;

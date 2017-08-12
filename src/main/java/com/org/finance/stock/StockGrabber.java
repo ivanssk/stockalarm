@@ -1,3 +1,5 @@
+package com.org.finance.stock;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.net.URL;
 import java.net.HttpURLConnection;

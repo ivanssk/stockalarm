@@ -1,3 +1,5 @@
+package com.org.finance.stock;
+
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.TerminalPosition;

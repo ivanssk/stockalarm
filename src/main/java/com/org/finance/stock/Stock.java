@@ -1,3 +1,5 @@
+package com.org.finance.stock;
+
 import java.util.ArrayList;
 
 public class Stock {
