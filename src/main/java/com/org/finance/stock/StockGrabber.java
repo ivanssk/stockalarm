@@ -49,10 +49,8 @@ public class StockGrabber implements Runnable {
 
 		in.close();
 
-		if (response.length() == 0) {
-			//System.out.println("no data");
+		if (response.length() == 0)
 			return null;
-		}
 
 		return response.toString();
 	}
@@ -63,20 +61,15 @@ public class StockGrabber implements Runnable {
 
 			while (true) {
 				for (int i = 0; i < _request.length; i++) {
-					long time1 = System.currentTimeMillis();
 					String message = getStock(_request[i], cookie);
-					long time2 = System.currentTimeMillis();
 
 					while (message == null) {
-						time1 = System.currentTimeMillis();
 						cookie = getCookie();
 						message = getStock(_request[i], cookie);
-						time2 = System.currentTimeMillis();
 					}
 
-					//System.out.println(Thread.currentThread().getId() + ": good - " + i + "(" + ((float) (time2 - time1) / 1000) + ")");
 					_messageQueue.add(message);
-					Thread.sleep(5000 - (time2 - time1));
+					Thread.sleep(3000);
 				}
 			}
 		} catch (Exception e) {
